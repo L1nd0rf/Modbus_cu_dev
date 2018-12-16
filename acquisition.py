@@ -29,7 +29,7 @@ class AcquisitionProcess():
     # Constructor #
     ############### 
     
-    def __init__(self, config, notebook):
+    def __init__(self, config, gui):
         
         # Communication configuration
         self.config_cu_name = config.get("cu_name")
@@ -51,29 +51,49 @@ class AcquisitionProcess():
         self.process_started = False
         # self.cu_healthy = AcquisitionProcess.UNKNOWN
 
-        # Logs directory declaration
-        if not os.path.exists("../Logs"):
-            os.makedirs("../Logs")
-        os.chdir("../Logs")
+        # # Logs directory declaration
+        # if not os.path.exists("../Logs"):
+        #     os.makedirs("../Logs")
+        # os.chdir("../Logs")
+
+        # # Logger decaration
+        # logging.basicConfig(filename="../Logs")
 
         # GUI textbox declaration
-        self.notebook = notebook
-        self.tab = Frame(self.notebook, width=300, height=300, padx=5, pady=5)
-        self.notebook.add(self.tab, text=self.config_cu_name)
-        self.text_zone = Text(self.tab)
-        self.text_zone.pack()
+        self.gui = gui
 
     
+    
     def __handleFunction(self):
+
+        # Define new name for alarms tracking file, changes everyday
+        ############################################################
+        self.day_file_name = "{}-{}_logs.txt".format(time.strftime("%Y_%m_%d"), self.config_cu_name)
+
+        # Logger decaration
+        ###################
+        logging.basicConfig(filename="./Logs/" + self.day_file_name)
+        
+        # Notify if process still running
+        #################################
+        self.__notifyRunnning()
+
+        # Open or reconnect TCP to server
+        #################################
+        self.__modbusClientConnection()
+
+        # Check that CU is still running 
+        ################################
         self.__processCheck()
+
+        # Handle thread
+        ###############
         self.thread = Timer(self.config_test_period, self.__handleFunction)
         self.thread.start()
 
+
     def start(self):
         if not self.process_started:
-            # self.cu_healthy = AcquisitionProcess.HEALTHY
-            self.text_zone.config(state="normal")
-            self.text_zone.config(state="disabled")
             display_message = self.config_cu_name + " Life counter process started\n================================"
             self.__displayLog(display_message)
             self.thread = Timer(self.config_test_period, self.__handleFunction)
@@ -81,6 +101,7 @@ class AcquisitionProcess():
             self.process_started = True
         else:
             showinfo(self.config_cu_name + " info", self.config_cu_name + " process already started.")
+
 
     def stop(self):
         if self.process_started:
@@ -92,43 +113,34 @@ class AcquisitionProcess():
         else:
             showinfo(self.config_cu_name + " info", self.config_cu_name + " process already stopped.")
 
-    def getCuState():
-        return self.cu_healthy
-    
-    def __displayLog(self, log):
-        self.text_zone.config(state="normal")
-        self.text_zone.insert(END, log + "\n")
-        self.text_zone.see(END)
-        self.text_zone.config(state="disabled")
-        print(log)
 
     def __writeLog(self, day_log_file, log_message):
         with open(day_log_file, "a") as log_file:
             log_file.write(log_message)
 
+
+    def __displayLog(self, message):
+        self.gui.displayLog(message)
+
+
     def __displayError(self, error):
         # self.cu_healthy = AcquisitionProcess.UNHEALTHY
         self.stop()
-        alerts.popup(self.tab, error) 
+        alerts.popup(self.gui, error) 
 
-    def __processCheck(self):
 
-        # Define new name for alarms tracking file, changes everyday
-        ############################################################
-        day_file_name = "{}-{}_logs.txt".format(time.strftime("%Y_%m_%d"), self.config_cu_name)
-        
-        # Notify if process still running
-        ################################
+    def __notifyRunnning(self):
         process_current_time = datetime.now()
         process_check_time_delta = process_current_time - self.previous_process_time
         if (int(process_check_time_delta.total_seconds()) >= self.config_process_check_time) or self.process_startup == True:
             log_message = "[INFO]   {} // Process running.\n".format(time.strftime("%d/%m/%Y - %H:%M:%S"))
-            self.__writeLog(day_file_name, log_message)
+            # self.__writeLog(self.day_file_name, log_message)
+            logging.info(log_message)
             self.previous_process_time = datetime.now()
             self.process_startup = False
-            
-        # Open or reconnect TCP to server
-        #################################
+
+
+    def __modbusClientConnection(self):
         if not self.client.is_open():
             # Try to connect
             if not self.client.open():
@@ -138,9 +150,12 @@ class AcquisitionProcess():
                 display_message = log_message
                 self.__displayError(error_message)
                 self.__displayLog(log_message)
-                self.__writeLog(day_file_name, log_message)
-               
-        
+                # self.__writeLog(self.day_file_name, log_message)
+                logging.error(log_message)
+
+
+    def __processCheck(self):
+
         # Counter test
         ##############
         if self.client.is_open():
@@ -155,8 +170,8 @@ class AcquisitionProcess():
                 display_message = log_message
                 self.__displayError(error_message)
                 self.__displayLog(display_message)
-                self.__writeLog(day_file_name, log_message)
-                
+                # self.__writeLog(self.day_file_name, log_message)
+                logging.error(log_message)
             # Records the counter value for next comparison 
             self.previous_counter_value = self.counter_value
 

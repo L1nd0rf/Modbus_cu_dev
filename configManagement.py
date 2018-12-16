@@ -6,7 +6,7 @@ import time
 import os
 import sys
 from communication.ipModule import validate_ip_4
-from configparser import *
+from configparser import ConfigParser
 
 class CuConfig():
 

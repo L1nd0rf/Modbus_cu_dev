@@ -1,5 +1,4 @@
-from tkinter import *
-from tkinter.messagebox import *
+from tkinter.messagebox import showerror
 
 #############
 # Functions #
