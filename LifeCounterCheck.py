@@ -36,7 +36,7 @@ class LifeCounterGui():
 		for config_dic_id, config_dic_info in self.config_cu.getFullDic().items():
 			self.process.update({config_dic_id:AcquisitionProcess(config_dic_info, self.nb_cu)})
 			Label(text=config_dic_id).grid()
-			PhotoImage(file="../modbus_dev/bitmap/state_healthy.gif")
+			PhotoImage(file="../Modbus_cu_dev/bitmap/state_healthy.gif")
 		self.gui_main.mainloop()
 		
 if __name__ == '__main__':
