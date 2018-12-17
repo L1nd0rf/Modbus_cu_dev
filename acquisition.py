@@ -10,7 +10,7 @@ from datetime import datetime
 from threading import Event, Thread, Timer
 from tkinter import *
 from tkinter.messagebox import *
-import alerts
+# import alerts
 import logging
 
 #############
@@ -49,15 +49,6 @@ class AcquisitionProcess():
         self.previous_process_time = datetime.now()
         self.process_startup = True
         self.process_started = False
-        # self.cu_healthy = AcquisitionProcess.UNKNOWN
-
-        # # Logs directory declaration
-        # if not os.path.exists("../Logs"):
-        #     os.makedirs("../Logs")
-        # os.chdir("../Logs")
-
-        # # Logger decaration
-        # logging.basicConfig(filename="../Logs")
 
         # GUI textbox declaration
         self.gui = gui
@@ -105,7 +96,7 @@ class AcquisitionProcess():
 
     def stop(self):
         if self.process_started:
-            # self.cu_healthy = AcquisitionProcess.UNKNOWN
+            self.__updateComStatus("UNKNOWN")
             display_message = "\n" + self.config_cu_name + " Life counter process stopped\n================================\n"
             self.__displayLog(display_message)
             self.thread.cancel()
@@ -113,6 +104,8 @@ class AcquisitionProcess():
         else:
             showinfo(self.config_cu_name + " info", self.config_cu_name + " process already stopped.")
 
+    def __updateComStatus(self, status):
+        self.gui.displayCuComStatus(self.config_cu_name, status)
 
     def __writeLog(self, day_log_file, log_message):
         with open(day_log_file, "a") as log_file:
@@ -120,13 +113,12 @@ class AcquisitionProcess():
 
 
     def __displayLog(self, message):
-        self.gui.displayLog(message)
+        self.gui.displayLog(self.config_cu_name, message)
 
 
     def __displayError(self, error):
-        # self.cu_healthy = AcquisitionProcess.UNHEALTHY
         self.stop()
-        alerts.popup(self.gui, error) 
+        showerror("Error", error)
 
 
     def __notifyRunnning(self):
@@ -134,7 +126,6 @@ class AcquisitionProcess():
         process_check_time_delta = process_current_time - self.previous_process_time
         if (int(process_check_time_delta.total_seconds()) >= self.config_process_check_time) or self.process_startup == True:
             log_message = "[INFO]   {} // Process running.\n".format(time.strftime("%d/%m/%Y - %H:%M:%S"))
-            # self.__writeLog(self.day_file_name, log_message)
             logging.info(log_message)
             self.previous_process_time = datetime.now()
             self.process_startup = False
@@ -149,9 +140,11 @@ class AcquisitionProcess():
                 log_message = "[ALARM]  {} // Unable to connect to {} ({}):{}.\n".format(time.strftime("%d/%m/%Y - %H:%M:%S"), self.config_cu_name, self.config_server_host,str(SERVER_PORT))
                 display_message = log_message
                 self.__displayError(error_message)
-                self.__displayLog(log_message)
-                # self.__writeLog(self.day_file_name, log_message)
+                self.__displayLog(display_message)
+                self.__updateComStatus("UNHEALTHY")
                 logging.error(log_message)
+            else:
+                self.__updateComStatus("HEALTHY")
 
 
     def __processCheck(self):
@@ -170,7 +163,6 @@ class AcquisitionProcess():
                 display_message = log_message
                 self.__displayError(error_message)
                 self.__displayLog(display_message)
-                # self.__writeLog(self.day_file_name, log_message)
                 logging.error(log_message)
             # Records the counter value for next comparison 
             self.previous_counter_value = self.counter_value
