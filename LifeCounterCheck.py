@@ -13,14 +13,8 @@ from configManagement import *
 import PIL.Image, PIL.ImageTk
 
 class LifeCounterGui():
-	COM_STATUS = {0 : "HEALTHY",
-				  1 : "UNHEALTHY",
-				  2 : "UNKNOWN"}
 
 	def displayLog(self, cu, log):
-		print (self.cu_gui_dic)
-		print(type(cu))
-		print (cu)
 		self.text_zone_log = self.cu_gui_dic[cu]["Text"]
 		self.text_zone_log.config(state="normal")
 		self.text_zone_log.insert(END, log + "\n")
@@ -31,13 +25,18 @@ class LifeCounterGui():
 	def displayCuComStatus(self, cu, status):
 		if status == "HEALTHY":
 			self.pic_com_status = PIL.ImageTk.PhotoImage(PIL.Image.open("./bitmap/state_healthy.png"))
+			print("Healthy")
 		if status == "UNHEALTHY":
 			self.pic_com_status = PIL.ImageTk.PhotoImage(PIL.Image.open("./bitmap/state_unhealthy.png"))
+			print("Unhealthy")
 		if status == "UNKNOWN":
 			self.pic_com_status = PIL.ImageTk.PhotoImage(PIL.Image.open("./bitmap/state_unknown.png"))
-		
-		self.cu_gui_dic[cu]["Picture canvas"].create_image(15, 15, image=self.cu_tab_dic["Com Status Picture"])
-		# self.cu_gui_dic[cu]["Picture canvas"].grid(row=self.gui_row, column=1, sticky=W)
+			print("Unknown")
+
+		print("Test")
+		self.cu_gui_dic[cu].update({"Com Status Picture":self.pic_com_status})
+		self.cu_gui_dic[cu]["Picture canvas"].create_image(15, 15, image=self.cu_gui_dic[cu]["Com Status Picture"])
+		self.cu_gui_dic[cu]["Picture canvas"].grid(row=self.cu_gui_dic[cu]["Com Status Picture Row"], column=1, sticky=W)
 
 
 	def main(self):
@@ -66,6 +65,7 @@ class LifeCounterGui():
 		Label(self.gui_main, text="CU").grid(row=2, column=0, sticky=W)
 		Label(self.gui_main, text="Communication status").grid(row=2, column=1, sticky=W)
 		self.gui_row = 3
+		
 		for config_dic_id, config_dic_info in self.config_cu.getFullDic().items():
 			self.cu_tab_dic = {}
 			# Tabs dictionnary declaration
@@ -74,6 +74,7 @@ class LifeCounterGui():
 			self.cu_tab_dic.update({"CU Label":Label(self.gui_main, text=config_dic_id)})
 			self.cu_tab_dic.update({"Picture canvas":Canvas(self.gui_main, width=25, height=25)})
 			self.cu_tab_dic.update({"Com Status Picture":photo})
+			self.cu_tab_dic.update({"Com Status Picture Row":self.gui_row})
 
 			self.cu_tab_dic["Text"].pack()
 			self.cu_tab_dic["CU Label"].grid(row=self.gui_row, column=0, sticky=W)

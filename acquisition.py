@@ -10,7 +10,6 @@ from datetime import datetime
 from threading import Event, Thread, Timer
 from tkinter import *
 from tkinter.messagebox import *
-# import alerts
 import logging
 
 #############
@@ -18,6 +17,7 @@ import logging
 #############
 
 SERVER_PORT = 502
+MODBUS_TIMEOUT = 5.0
 
 ####################
 # Class definition #
@@ -42,6 +42,7 @@ class AcquisitionProcess():
         self.client = ModbusClient()
         self.client.host(self.config_server_host)
         self.client.port(SERVER_PORT)
+        self.client.timeout(MODBUS_TIMEOUT)
 
         # Values initalization
         self.previous_counter_value = -1
@@ -96,6 +97,7 @@ class AcquisitionProcess():
 
     def stop(self):
         if self.process_started:
+            self.client.close()
             self.__updateComStatus("UNKNOWN")
             display_message = "\n" + self.config_cu_name + " Life counter process stopped\n================================\n"
             self.__displayLog(display_message)
@@ -117,7 +119,7 @@ class AcquisitionProcess():
 
 
     def __displayError(self, error):
-        self.stop()
+        #self.stop()
         showerror("Error", error)
 
 
@@ -135,6 +137,7 @@ class AcquisitionProcess():
         if not self.client.is_open():
             # Try to connect
             if not self.client.open():
+                self.thread.cancel()
                 # If not able, records the error
                 error_message = "Unable to connect to {} : {}.".format(self.config_server_host,str(SERVER_PORT))
                 log_message = "[ALARM]  {} // Unable to connect to {} ({}):{}.\n".format(time.strftime("%d/%m/%Y - %H:%M:%S"), self.config_cu_name, self.config_server_host,str(SERVER_PORT))
@@ -145,6 +148,8 @@ class AcquisitionProcess():
                 logging.error(log_message)
             else:
                 self.__updateComStatus("HEALTHY")
+        else:
+            self.__updateComStatus("HEALTHY")
 
 
     def __processCheck(self):
@@ -158,6 +163,7 @@ class AcquisitionProcess():
             self.__displayLog(display_message)
             # Test if counter is incremented
             if self.counter_value == self.previous_counter_value:
+                self.thread.cancel()
                 error_message = self.config_cu_name + " has stopped running."
                 log_message = "[ALARM] {} // Life counter value didn't change (value = {}))".format(time.strftime("%d/%m/%Y - %H:%M:%S"), self.counter_value)
                 display_message = log_message
