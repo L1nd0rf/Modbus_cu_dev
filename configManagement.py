@@ -2,18 +2,17 @@
 # Imports #
 ###########
 
-import time
-import os
 import sys
-from communication.ipModule import validate_ip_4
+import ipaddress
 from configparser import ConfigParser
+
 
 class CuConfig():
 
     def __init__(self, config_file):
         self.config_file = config_file
 
-        # Config dictionnary declaration
+        # Config dictionary declaration
         self.config = ConfigParser()
         self.config.read(self.config_file)
         self.config_dic = {}
@@ -31,12 +30,12 @@ class CuConfig():
 
     def __getServerHost(self):
         # Test IPV4 format
-        if not validate_ip_4(self.config[self.section]["IP"]):
+        try:
+            self.dic["server_host"] = str(ipaddress.ip_address(self.config[self.section]["IP"]))
+        except:
             print("Wrong IP address format for " + self.dic.get("cu_name"))
             input("Press \"Enter\" to quit: ")
             sys.exit(0)
-        else:
-            self.dic["server_host"] = self.config[self.section]["IP"]
 
     def __getTestperiod(self):
         # Test test period format

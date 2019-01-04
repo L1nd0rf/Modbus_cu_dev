@@ -6,13 +6,24 @@
 # Imports #
 ###########
 
-from tkinter import *
 from tkinter.ttk import *
 from acquisition import *
 from configManagement import *
 import PIL.Image, PIL.ImageTk
 
+
 class LifeCounterGui():
+
+	def __init__(self):
+		self.text_zone_log = None
+		self.pic_com_status = None
+		self.config_cu = None
+		self.gui_main = None
+		self.nb_cu = None
+		self.cu_gui_dic = {}
+		self.cu_process_dic = {}
+		self.cu_tab_dic = {}
+		self.gui_row = 3
 
 	def displayLog(self, cu, log):
 		self.text_zone_log = self.cu_gui_dic[cu]["Text"]
@@ -25,22 +36,17 @@ class LifeCounterGui():
 	def displayCuComStatus(self, cu, status):
 		if status == "HEALTHY":
 			self.pic_com_status = PIL.ImageTk.PhotoImage(PIL.Image.open("./bitmap/state_healthy.png"))
-			print("Healthy")
 		if status == "UNHEALTHY":
 			self.pic_com_status = PIL.ImageTk.PhotoImage(PIL.Image.open("./bitmap/state_unhealthy.png"))
-			print("Unhealthy")
 		if status == "UNKNOWN":
 			self.pic_com_status = PIL.ImageTk.PhotoImage(PIL.Image.open("./bitmap/state_unknown.png"))
-			print("Unknown")
 
-		print("Test")
 		self.cu_gui_dic[cu].update({"Com Status Picture":self.pic_com_status})
 		self.cu_gui_dic[cu]["Picture canvas"].create_image(15, 15, image=self.cu_gui_dic[cu]["Com Status Picture"])
 		self.cu_gui_dic[cu]["Picture canvas"].grid(row=self.cu_gui_dic[cu]["Com Status Picture Row"], column=1, sticky=W)
 
-
 	def main(self):
-		
+
 		############################
 		# Configuration Management #
 		############################
@@ -57,18 +63,14 @@ class LifeCounterGui():
 		self.nb_cu.grid(row=1, column=0, columnspan=20)
 
 		# GUI and communication declaration for each CU in config
-		self.cu_gui_dic = {}
-		self.cu_process_dic = {}
-		canvas = []
 		im = PIL.Image.open("./bitmap/state_unknown.png")
 		photo = PIL.ImageTk.PhotoImage(im)
 		Label(self.gui_main, text="CU").grid(row=2, column=0, sticky=W)
 		Label(self.gui_main, text="Communication status").grid(row=2, column=1, sticky=W)
-		self.gui_row = 3
 		
 		for config_dic_id, config_dic_info in self.config_cu.getFullDic().items():
 			self.cu_tab_dic = {}
-			# Tabs dictionnary declaration
+			# Tabs dictionary declaration
 			self.cu_tab_dic.update({"Tab":Frame(self.nb_cu, width=300, height=300, padx=5, pady=5)})
 			self.cu_tab_dic.update({"Text":Text(self.cu_tab_dic["Tab"])}) 
 			self.cu_tab_dic.update({"CU Label":Label(self.gui_main, text=config_dic_id)})
@@ -82,7 +84,7 @@ class LifeCounterGui():
 			# Adding tab for each CU
 			self.nb_cu.add(self.cu_tab_dic["Tab"], text=config_dic_id)
 	
-			# Create dictionnary of all CUs dictionnaries
+			# Create dictionary of all CUs dictionaries
 			self.cu_gui_dic.update({config_dic_id:self.cu_tab_dic})
 
 			# Communication picture display
@@ -95,13 +97,14 @@ class LifeCounterGui():
 			self.gui_row += 1
 
 		# Buttons declaration
-		Button(self.gui_main, text ='Start', command=lambda: self.cu_process_dic[self.nb_cu.tab(self.nb_cu.select(), "text")].start(), height=2, width=10).grid(row=self.gui_row, column=0, sticky=W)
-		Button(self.gui_main, text ='Stop', command=lambda: self.cu_process_dic[self.nb_cu.tab(self.nb_cu.select(), "text")].stop(), height=2, width=10).grid(row=self.gui_row, column=19, sticky=E)
+		Button(self.gui_main, text='Start', command=lambda: self.cu_process_dic[self.nb_cu.tab(self.nb_cu.select(), "text")].start(), height=2, width=10).grid(row=self.gui_row, column=0, sticky=W)
+		Button(self.gui_main, text='Stop', command=lambda: self.cu_process_dic[self.nb_cu.tab(self.nb_cu.select(), "text")].stop(), height=2, width=10).grid(row=self.gui_row, column=19, sticky=E)
 
 		self.gui_main.mainloop()
-		
+
+
 if __name__ == '__main__':
-    LifeCounterGui().main()
+	LifeCounterGui().main()
 
 
 

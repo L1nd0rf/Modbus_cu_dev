@@ -18,6 +18,7 @@ import logging
 
 SERVER_PORT = 502
 MODBUS_TIMEOUT = 5.0
+MAX_CONNECTION_ATTEMPT = 3
 
 ####################
 # Class definition #
@@ -50,6 +51,7 @@ class AcquisitionProcess():
         self.previous_process_time = datetime.now()
         self.process_startup = True
         self.process_started = False
+        self.connection_attempt = 0
 
         # GUI textbox declaration
         self.gui = gui
@@ -135,21 +137,27 @@ class AcquisitionProcess():
 
     def __modbusClientConnection(self):
         if not self.client.is_open():
-            # Try to connect
-            if not self.client.open():
-                self.thread.cancel()
-                # If not able, records the error
-                error_message = "Unable to connect to {} : {}.".format(self.config_server_host,str(SERVER_PORT))
-                log_message = "[ALARM]  {} // Unable to connect to {} ({}):{}.\n".format(time.strftime("%d/%m/%Y - %H:%M:%S"), self.config_cu_name, self.config_server_host,str(SERVER_PORT))
-                display_message = log_message
-                self.__displayError(error_message)
-                self.__displayLog(display_message)
-                self.__updateComStatus("UNHEALTHY")
-                logging.error(log_message)
+            if self.connection_attempt <= MAX_CONNECTION_ATTEMPT:
+                # Try to connect
+                if not self.client.open():
+                    self.thread.cancel()
+                    # If not able, records the error
+                    error_message = "Unable to connect to {} : {}.".format(self.config_server_host,str(SERVER_PORT))
+                    log_message = "[ALARM]  {} // Unable to connect to {} ({}):{}.\n".format(time.strftime("%d/%m/%Y - %H:%M:%S"), self.config_cu_name, self.config_server_host,str(SERVER_PORT))
+                    display_message = log_message
+                    self.__displayError(error_message)
+                    self.__displayLog(display_message)
+                    self.__updateComStatus("UNHEALTHY")
+                    logging.error(log_message)
+                    self.connection_attempt += 1
+                else:
+                    self.__updateComStatus("HEALTHY")
             else:
-                self.__updateComStatus("HEALTHY")
+                self.stop()
+                self.__displayError("Connection to " + self.config_cu_name + " aborted.")
         else:
             self.__updateComStatus("HEALTHY")
+            
 
 
     def __processCheck(self):
