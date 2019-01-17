@@ -3,12 +3,9 @@
 ###########
 
 import time
-import os
-import sys
 from pyModbusTCP.client import ModbusClient
 from datetime import datetime
-from threading import Event, Thread, Timer
-from tkinter import *
+from threading import Timer
 from tkinter.messagebox import *
 import logging
 
@@ -56,8 +53,6 @@ class AcquisitionProcess():
         # GUI textbox declaration
         self.gui = gui
 
-    
-    
     def __handleFunction(self):
 
         # Define new name for alarms tracking file, changes everyday
@@ -85,7 +80,6 @@ class AcquisitionProcess():
         self.thread = Timer(self.config_test_period, self.__handleFunction)
         self.thread.start()
 
-
     def start(self):
         if not self.process_started:
             display_message = self.config_cu_name + " Life counter process started\n================================"
@@ -95,7 +89,6 @@ class AcquisitionProcess():
             self.process_started = True
         else:
             showinfo(self.config_cu_name + " info", self.config_cu_name + " process already started.")
-
 
     def stop(self):
         if self.process_started:
@@ -115,15 +108,12 @@ class AcquisitionProcess():
         with open(day_log_file, "a") as log_file:
             log_file.write(log_message)
 
-
     def __displayLog(self, message):
         self.gui.displayLog(self.config_cu_name, message)
-
 
     def __displayError(self, error):
         #self.stop()
         showerror("Error", error)
-
 
     def __notifyRunnning(self):
         process_current_time = datetime.now()
@@ -133,7 +123,6 @@ class AcquisitionProcess():
             logging.info(log_message)
             self.previous_process_time = datetime.now()
             self.process_startup = False
-
 
     def __modbusClientConnection(self):
         if not self.client.is_open():
@@ -157,8 +146,6 @@ class AcquisitionProcess():
                 self.__displayError("Connection to " + self.config_cu_name + " aborted.")
         else:
             self.__updateComStatus("HEALTHY")
-            
-
 
     def __processCheck(self):
 
@@ -180,10 +167,3 @@ class AcquisitionProcess():
                 logging.error(log_message)
             # Records the counter value for next comparison 
             self.previous_counter_value = self.counter_value
-
-
-
-
-  
-
-    
