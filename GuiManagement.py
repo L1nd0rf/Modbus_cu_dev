@@ -20,8 +20,10 @@ class GuiManagement:
 
         self.initMainWindow()
         self.initNotebook()
-        self.initButton("Start", lambda: self.cu_process_dic[self.nb_cu.tab(self.nb_cu.select(), "text")].start(), W)
-        self.initButton("Stop", lambda: self.cu_process_dic[self.nb_cu.tab(self.nb_cu.select(), "text")].stop(), E)
+        self.cuDictionnaryCreation()
+        self.initButton("Start", lambda: self.cu_process_dic[self.nb_cu.tab(self.nb_cu.select(), "text")].start(), W, self.gui_row, 0)
+        self.initButton("Stop", lambda: self.cu_process_dic[self.nb_cu.tab(self.nb_cu.select(), "text")].stop(), E, self.gui_row, 19)
+        self.guiRun()
 
     def displayLog(self, cu, log):
         self.text_zone_log = self.cu_gui_dic[cu]["Text"]
@@ -53,28 +55,26 @@ class GuiManagement:
         self.nb_cu.grid(row=1, column=0, columnspan=20)
 
     def initFrame(self):
+        print("Test")
 
-
-    def initButton(self, name, action, stick):
+    def initButton(self, name, action, stick, row, column):
         Button(self.gui_main,
                text=name,
                command=action, height=2,
                width=10)\
-            .grid(row=self.gui_row,
-                  column=0,
+            .grid(row=row,
+                  column=column,
                   sticky=stick)
 
     def guiRun(self):
         self.gui_main.mainloop()
 
-    def main(self):
+    def cuDictionnaryCreation(self):
         ###################
         # GUI declaration #
         ###################
 
-
         # Notebook declaration
-
 
         # GUI and communication declaration for each CU in config
         im = PIL.Image.open("./bitmap/state_unknown.png")
@@ -110,7 +110,4 @@ class GuiManagement:
             # Incrementing the row to display communication status
             self.gui_row += 1
 
-        self.gui_main.mainloop()
 
-        #               height=2,
-         #      width=10)\

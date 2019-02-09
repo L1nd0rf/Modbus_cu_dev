@@ -27,7 +27,7 @@ class LifeCounterGui:
 		###################
 
 		self.gui = GuiManagement(self.config_cu)
-		self.gui.main()
+		#self.gui.main()
 
 
 if __name__ == '__main__':
