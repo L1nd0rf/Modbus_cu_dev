@@ -22,16 +22,11 @@ class LifeCounterGui:
 		############################
 		self.config_cu = CuConfig("LifeCounterConfig.ini")
 
-		###################
-		# GUI declaration #
-		###################
-
+		##################
+		# GUI Management #
+		##################
 		self.gui = GuiManagement(self.config_cu)
-		#self.gui.main()
 
 
 if __name__ == '__main__':
 	LifeCounterGui().main()
-
-
-

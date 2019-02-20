@@ -21,7 +21,8 @@ MAX_CONNECTION_ATTEMPT = 3
 # Class definition #
 ####################
 
-class AcquisitionProcess():
+
+class AcquisitionProcess:
 
     ###############
     # Constructor #
@@ -59,9 +60,12 @@ class AcquisitionProcess():
         ############################################################
         self.day_file_name = "{}-{}_logs.txt".format(time.strftime("%Y_%m_%d"), self.config_cu_name)
 
-        # Logger decaration
+        # Logger declaration
         ###################
-        logging.basicConfig(filename="./Logs/" + self.day_file_name)
+        logging.basicConfig(format='[%(levelname)s] - %(asctime)s - %(message)s',
+                            datefmt='%Y/%m/%d %I:%M:%S %p',
+                            filename="./Logs/" + self.day_file_name,
+                            level=logging.INFO)
         
         # Notify if process still running
         #################################
@@ -112,14 +116,13 @@ class AcquisitionProcess():
         self.gui.displayLog(self.config_cu_name, message)
 
     def __displayError(self, error):
-        #self.stop()
         showerror("Error", error)
 
     def __notifyRunnning(self):
         process_current_time = datetime.now()
         process_check_time_delta = process_current_time - self.previous_process_time
         if (int(process_check_time_delta.total_seconds()) >= self.config_process_check_time) or self.process_startup == True:
-            log_message = "[INFO]   {} // Process running.\n".format(time.strftime("%d/%m/%Y - %H:%M:%S"))
+            log_message = "Process running.\n"
             logging.info(log_message)
             self.previous_process_time = datetime.now()
             self.process_startup = False
@@ -132,7 +135,9 @@ class AcquisitionProcess():
                     self.thread.cancel()
                     # If not able, records the error
                     error_message = "Unable to connect to {} : {}.".format(self.config_server_host,str(SERVER_PORT))
-                    log_message = "[ALARM]  {} // Unable to connect to {} ({}):{}.\n".format(time.strftime("%d/%m/%Y - %H:%M:%S"), self.config_cu_name, self.config_server_host,str(SERVER_PORT))
+                    log_message = "Unable to connect to {} ({}):{}.\n".format(self.config_cu_name,
+                                                                              self.config_server_host,
+                                                                              str(SERVER_PORT))
                     display_message = log_message
                     self.__displayError(error_message)
                     self.__displayLog(display_message)
@@ -152,7 +157,7 @@ class AcquisitionProcess():
         # Counter test
         ##############
         if self.client.is_open():
-            # Read the counter value  
+            # Read the counter value
             self.counter_value = self.client.read_holding_registers(self.config_register_address)
             display_message = "{} Life counter value: {}".format(self.config_cu_name, str(self.counter_value))
             self.__displayLog(display_message)
@@ -160,7 +165,7 @@ class AcquisitionProcess():
             if self.counter_value == self.previous_counter_value:
                 self.thread.cancel()
                 error_message = self.config_cu_name + " has stopped running."
-                log_message = "[ALARM] {} // Life counter value didn't change (value = {}))".format(time.strftime("%d/%m/%Y - %H:%M:%S"), self.counter_value)
+                log_message = "Life counter value didn't change (value = {}))".format(self.counter_value)
                 display_message = log_message
                 self.__displayError(error_message)
                 self.__displayLog(display_message)
