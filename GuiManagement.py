@@ -21,7 +21,7 @@ class GuiManagement:
         """
         GuiManagement class constructor.
 
-        :param config_cu: (Object CuConfig) Object giving access to dictionary with all parameters found in the
+        :param config_cu: (object CuConfig) Object giving access to dictionary with all parameters found in the
             LifeCounterConfig.ini file.
         """
         # Object initialization
@@ -55,8 +55,8 @@ class GuiManagement:
         """
         Method to display the current logs in the notebook tab corresponding to the CU.
 
-        :param cu: (String) CU name taken from the config dictionary (field "cu_name");
-        :param log: (String) Log to display in the frame;
+        :param cu: (string) CU name taken from the config dictionary (field "cu_name");
+        :param log: (string) Log to display in the frame;
         :return: N/A.
         """
 
@@ -80,8 +80,8 @@ class GuiManagement:
     def displayCuComStatus(self, cu, status):
         """
 
-        :param cu: (String) CU name taken from the config dictionary (field "cu_name");
-        :param status: (Enum: CuStatus) Contains a string defining the CU state. Must contain one of the "CuStatus"
+        :param cu: (string) CU name taken from the config dictionary (field "cu_name");
+        :param status: (enum: CuStatus) Contains a string defining the CU state. Must contain one of the "CuStatus"
             enum values:
         :return: N/A
         """
@@ -104,9 +104,9 @@ class GuiManagement:
 
     def initMainWindow(self):
         """
-        Main window creation (using TKinter).
+        Main window creation (using Tkinter).
 
-        Initialization of all TKinter objects. The buttons created will react to the press event in order to start the
+        Initialization of all Tkinter objects. The buttons created will react to the press event in order to start the
         counter acquisition.
 
         :return: N/A
@@ -135,7 +135,7 @@ class GuiManagement:
 
     def initNotebook(self):
         """
-        TKinter notebook initialization.
+        Tkinter notebook initialization.
 
         :return: N/A
         """
@@ -161,9 +161,9 @@ class GuiManagement:
 
         :param name: (string) Name displayed on the button
         :param action: (lambda function) Lambda function to be called when the button is pressed
-        :param stick: (N, E, W, S) Sticky parameter (from grid in TKinter). Accepted values: N, E, W, S.
-        :param row: (Integer) Row number in the main window.
-        :param column: (Integer) Column number in the main window.
+        :param stick: (N, E, W, S) Sticky parameter (from grid in Tkinter). Accepted values: N, E, W, S.
+        :param row: (integer) Row number in the main window.
+        :param column: (integer) Column number in the main window.
         :return: N/A
         """
         Button(self.gui_main,
@@ -188,7 +188,7 @@ class GuiManagement:
         Method to create a dictionary for each CU that contains all the GUI parameters.
 
         This method creates a dictionary for each CU with the following fields:
-        - "Tab": Contains a Frame object (from TKinter) that is added to the notebook previously defined;
+        - "Tab": Contains a Frame object (from Tkinter) that is added to the notebook previously defined;
         - "Text": Contains a Text object (from Tkinter) that is the tab title;
         - "CU label": Contains a Label object (from Tkinter) that is displayed for the connection status;
         - "Picture Canvas": Contains a Canvas object (from Tkinter) that sets the status picture position;
@@ -199,7 +199,7 @@ class GuiManagement:
         After the CU parameter dictionary creation, it is added to a global dictionary (cu_gui_dic) that contains all
         CU GUI parameters for all CUs.
 
-        :return:
+        :return: N/A
         """
         # GUI and communication declaration for each CU in config
         im = PIL.Image.open("./bitmap/state_unknown.png")

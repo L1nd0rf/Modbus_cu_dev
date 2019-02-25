@@ -168,6 +168,10 @@ class AcquisitionProcess:
         showerror("Error", error)
 
     def __notifyRunning(self):
+        """
+
+        :return:
+        """
         process_current_time = datetime.now()
         process_check_time_delta = process_current_time - self.previous_process_time
         if (int(process_check_time_delta.total_seconds()) >= self.config_process_check_time) \
@@ -178,6 +182,17 @@ class AcquisitionProcess:
             self.process_startup = False
 
     def __modbusClientConnection(self):
+        """
+        Private method that handles the Modbus connection to the CU.
+
+        This method implements the following checks:
+        - Maximum connection attempts. If the maximum number is reached, a popup is displayed and the connection is
+            aborted. The CU communication status display changes to unhealthy.
+        - Connection established. If it is not established, a popup is displayed and a log is written in the CU frame
+            and in the log file. The CU communication status display changes to unhealthy.
+            If the connection is correctly established, the CU communication status display changes to healthy.
+        :return: N/A
+        """
         if not self.client.is_open():
             if self.connection_attempt <= MAX_CONNECTION_ATTEMPT:
                 # Try to connect
@@ -203,14 +218,22 @@ class AcquisitionProcess:
             self.__updateComStatus(CuStatus.HEALTHY)
 
     def __processCheck(self):
+        """
+        Private method that checks that the counter value of the CU is still changing.
 
+        This method prints the value read in the frame of the CU. If the counter value does not change between two
+        calls, an error popup is displayed and the error is written in the log file.
+
+        :return: N/A
+        """
         # Counter test
-        ##############
         if self.client.is_open():
+
             # Read the counter value
             self.counter_value = self.client.read_holding_registers(self.config_register_address)
             display_message = "{} Life counter value: {}".format(self.config_cu_name, str(self.counter_value))
             self.__displayLog(display_message)
+
             # Test if counter is incremented
             if self.counter_value == self.previous_counter_value:
                 self.thread.cancel()
@@ -220,5 +243,6 @@ class AcquisitionProcess:
                 self.__displayError(error_message)
                 self.__displayLog(display_message)
                 logging.error(log_message)
+
             # Records the counter value for next comparison 
             self.previous_counter_value = self.counter_value
