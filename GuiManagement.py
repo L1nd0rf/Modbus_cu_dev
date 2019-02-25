@@ -93,12 +93,12 @@ class GuiManagement:
         elif status == CuStatus.UNKNOWN:
             self.pic_com_status = PIL.ImageTk.PhotoImage(PIL.Image.open("./bitmap/state_unknown.png"))
 
-        # Update communication picture status and picture canvas in CU dictionary
+        # Update communication picture status and Picture Canvas in CU dictionary
         self.cu_gui_dic[cu].update({"Com Status Picture": self.pic_com_status})
-        self.cu_gui_dic[cu]["Picture canvas"].create_image(15, 15, image=self.cu_gui_dic[cu]["Com Status Picture"])
+        self.cu_gui_dic[cu]["Picture Canvas"].create_image(15, 15, image=self.cu_gui_dic[cu]["Com Status Picture"])
 
         # Display picture
-        self.cu_gui_dic[cu]["Picture canvas"].grid(row=self.cu_gui_dic[cu]["Com Status Picture Row"],
+        self.cu_gui_dic[cu]["Picture Canvas"].grid(row=self.cu_gui_dic[cu]["Com Status Picture Row"],
                                                    column=1,
                                                    sticky=W)
 
