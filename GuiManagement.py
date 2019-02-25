@@ -3,69 +3,152 @@ from tkinter.ttk import *
 from tkinter import *
 import PIL.Image, PIL.ImageTk
 from AcquisitionProcess import *
+from CuStatus import CuStatus
 
 
 class GuiManagement:
+    """
+    Class to manage the GUI implementation of the "Life Counter Check" project.
 
+    This class implements:
+        - The main window of the GUI;
+        - A notebook that contains a tab for each CU in the configuration file (LifeCounterConfig.ini);
+        - A connection status for each CU in the configuration file (LifeCounterConfig.ini);
+        - A start and a stop button, that will start or stop the acquisition of the currently selected CU (in the
+            notebook).
+    """
     def __init__(self, config_cu):
+        """
+        GuiManagement class constructor.
+
+        :param config_cu: (Object CuConfig) Object giving access to dictionary with all parameters found in the
+            LifeCounterConfig.ini file.
+        """
+        # Object initialization
         self.text_zone_log = None
         self.pic_com_status = None
         self.gui_main = None
         self.nb_cu = None
-        self.config_cu = config_cu
+
+        # Dictionaries initialization
         self.cu_gui_dic = {}
         self.cu_process_dic = {}
         self.cu_tab_dic = {}
+
+        # Objects GUI position initialization (depends on number of CUs in config
         self.gui_row = 0
 
+        # Importing CU config
+        self.config_cu = config_cu
+        print(len(self.config_cu.getFullDic()))
+
+        # Main window definition
         self.initMainWindow()
-        self.initNotebook()
+
+        # Dictionary creation with all display parameters for each CU
         self.initCuDictionary()
-        self.initButton("Start",
-                        lambda: self.cu_process_dic[self.nb_cu.tab(self.nb_cu.select(), "text")].start(),
-                        W,
-                        self.gui_row,
-                        0)
-        self.initButton("Stop",
-                        lambda: self.cu_process_dic[self.nb_cu.tab(self.nb_cu.select(), "text")].stop(),
-                        E,
-                        self.gui_row,
-                        19)
+
+        # Starting application
         self.guiRun()
 
     def displayLog(self, cu, log):
+        """
+        Method to display the current logs in the notebook tab corresponding to the CU.
+
+        :param cu: (String) CU name taken from the config dictionary (field "cu_name");
+        :param log: (String) Log to display in the frame;
+        :return: N/A.
+        """
+
+        # Define in which zone to write the log
         self.text_zone_log = self.cu_gui_dic[cu]["Text"]
+
+        # Allow to write in the window
         self.text_zone_log.config(state="normal")
+
+        # Insert log
         self.text_zone_log.insert(END, log + "\n")
+
+        # Show last line written
         self.text_zone_log.see(END)
+
+        # Disable writing mode
         self.text_zone_log.config(state="disabled")
+
         print(log)
 
     def displayCuComStatus(self, cu, status):
-        if status == "HEALTHY":
+        """
+
+        :param cu: (String) CU name taken from the config dictionary (field "cu_name");
+        :param status: (Enum: CuStatus) Contains a string defining the CU state. Must contain one of the "CuStatus"
+            enum values:
+        :return: N/A
+        """
+
+        if status == CuStatus.HEALTHY:
             self.pic_com_status = PIL.ImageTk.PhotoImage(PIL.Image.open("./bitmap/state_healthy.png"))
-        if status == "UNHEALTHY":
+        elif status == CuStatus.UNHEALTHY:
             self.pic_com_status = PIL.ImageTk.PhotoImage(PIL.Image.open("./bitmap/state_unhealthy.png"))
-        if status == "UNKNOWN":
+        elif status == CuStatus.UNKNOWN:
             self.pic_com_status = PIL.ImageTk.PhotoImage(PIL.Image.open("./bitmap/state_unknown.png"))
 
+        # Update communication picture status and picture canvas in CU dictionary
         self.cu_gui_dic[cu].update({"Com Status Picture": self.pic_com_status})
         self.cu_gui_dic[cu]["Picture canvas"].create_image(15, 15, image=self.cu_gui_dic[cu]["Com Status Picture"])
+
+        # Display picture
         self.cu_gui_dic[cu]["Picture canvas"].grid(row=self.cu_gui_dic[cu]["Com Status Picture Row"],
                                                    column=1,
                                                    sticky=W)
 
     def initMainWindow(self):
+        """
+        Main window creation (using TKinter).
+
+        Initialization of all TKinter objects. The buttons created will react to the press event in order to start the
+        counter acquisition.
+
+        :return: N/A
+        """
         self.gui_main = Tk()
         self.gui_main.title("CU life counter")
 
+        # Calling notebook in main window including a tab for each CU
+        self.initNotebook()
+
+        # Button position definition
+        button_row = self.gui_row + len(self.config_cu.getFullDic())
+
+        # Start button calls a lambda function to start the communication of the selected CU (in the notebook).
+        # The method called is part of the AcquisitionProcess class.
+        self.__initButton("Start",
+                          lambda: self.cu_process_dic[self.nb_cu.tab(self.nb_cu.select(), "text")].start(),
+                          W,
+                          button_row,
+                          0)
+        self.__initButton("Stop",
+                          lambda: self.cu_process_dic[self.nb_cu.tab(self.nb_cu.select(), "text")].stop(),
+                          E,
+                          button_row,
+                          19)
+
     def initNotebook(self):
+        """
+        TKinter notebook initialization.
+
+        :return: N/A
+        """
         self.nb_cu = Notebook(self.gui_main)
         self.nb_cu.grid(row=self.gui_row, column=0, columnspan=20)
         self.gui_row += 1
 
-
     def initCuLabel(self):
+        """
+        Label initialization for the CU status.
+
+        :return: N/A
+        """
         Label(self.gui_main, text="CU").grid(row=self.gui_row, column=0, sticky=W)
         Label(self.gui_main, text="Communication status").grid(row=self.gui_row, column=1, sticky=W)
         self.gui_row += 1
@@ -73,7 +156,16 @@ class GuiManagement:
     def initFrame(self):
         print("Test")
 
-    def initButton(self, name, action, stick, row, column):
+    def __initButton(self, name, action, stick, row, column):
+        """
+
+        :param name: (string) Name displayed on the button
+        :param action: (lambda function) Lambda function to be called when the button is pressed
+        :param stick: (N, E, W, S) Sticky parameter (from grid in TKinter). Accepted values: N, E, W, S.
+        :param row: (Integer) Row number in the main window.
+        :param column: (Integer) Column number in the main window.
+        :return: N/A
+        """
         Button(self.gui_main,
                text=name,
                command=action,
@@ -84,10 +176,31 @@ class GuiManagement:
                   sticky=stick)
 
     def guiRun(self):
+        """
+        Method that starts the GUI. Must be called at last.
+
+        :return: N/A
+        """
         self.gui_main.mainloop()
 
     def initCuDictionary(self):
+        """
+        Method to create a dictionary for each CU that contains all the GUI parameters.
 
+        This method creates a dictionary for each CU with the following fields:
+        - "Tab": Contains a Frame object (from TKinter) that is added to the notebook previously defined;
+        - "Text": Contains a Text object (from Tkinter) that is the tab title;
+        - "CU label": Contains a Label object (from Tkinter) that is displayed for the connection status;
+        - "Picture Canvas": Contains a Canvas object (from Tkinter) that sets the status picture position;
+        - "Com Status Picture": Contains a PhotoImage object (from PIL.ImageTk) that displays the current status of the
+            CU;
+        - "Com Status Picture Row": Contains an integer that indicates the row of the current CU connection status.
+
+        After the CU parameter dictionary creation, it is added to a global dictionary (cu_gui_dic) that contains all
+        CU GUI parameters for all CUs.
+
+        :return:
+        """
         # GUI and communication declaration for each CU in config
         im = PIL.Image.open("./bitmap/state_unknown.png")
         photo = PIL.ImageTk.PhotoImage(im)
@@ -100,7 +213,7 @@ class GuiManagement:
             self.cu_tab_dic.update({"Tab": Frame(self.nb_cu, width=300, height=300, padx=5, pady=5)})
             self.cu_tab_dic.update({"Text": Text(self.cu_tab_dic["Tab"])})
             self.cu_tab_dic.update({"CU Label": Label(self.gui_main, text=config_dic_id)})
-            self.cu_tab_dic.update({"Picture canvas": Canvas(self.gui_main, width=25, height=25)})
+            self.cu_tab_dic.update({"Picture Canvas": Canvas(self.gui_main, width=25, height=25)})
             self.cu_tab_dic.update({"Com Status Picture": photo})
             self.cu_tab_dic.update({"Com Status Picture Row": self.gui_row})
 
@@ -115,7 +228,7 @@ class GuiManagement:
             self.cu_gui_dic.update({config_dic_id: self.cu_tab_dic})
 
             # Communication picture display
-            self.displayCuComStatus(config_dic_id, "UNKNOWN")
+            self.displayCuComStatus(config_dic_id, CuStatus.UNKNOWN)
 
             # Communication to CU initialization
             self.cu_process_dic.update({config_dic_id: AcquisitionProcess(config_dic_info, self)})
