@@ -61,8 +61,38 @@ class AcquisitionProcess:
         self.process_started = False
         self.connection_attempt = 0
 
+        # Define new name for alarms tracking file, changes everyday
+        self.day_file_name = "{}-{}_logs.txt".format(time.strftime("%Y_%m_%d"), self.config_cu_name)
+
+        # Objects initialization
+        self.thread = None
+        self.logger = self.__setupLogger(self.config_cu_name, self.day_file_name)
+
         # GUI textbox declaration
         self.gui = gui
+
+    def __setupLogger(self, name, log_file, level=logging.INFO):
+        """
+        Private method that creates a logger for the
+        :param name:
+        :param log_file:
+        :param level:
+        :return:
+        """
+        # Define logs format
+        formatter = logging.Formatter(fmt='[%(levelname)s] - %(asctime)s - %(message)s',
+                                      datefmt='%Y/%m/%d %I:%M:%S %p')
+
+        # Define file handler with path and format
+        handler = logging.FileHandler("./Logs/" + log_file)
+        handler.setFormatter(formatter)
+
+        # Define logger with name, level and adding the file handler
+        logger = logging.getLogger(name)
+        logger.setLevel(level)
+        logger.addHandler(handler)
+
+        return logger
 
     def __handleFunction(self):
         """
@@ -74,15 +104,6 @@ class AcquisitionProcess:
         :return: N/A
         """
 
-        # Define new name for alarms tracking file, changes everyday
-        self.day_file_name = "{}-{}_logs.txt".format(time.strftime("%Y_%m_%d"), self.config_cu_name)
-
-        # Logger declaration
-        logging.basicConfig(format='[%(levelname)s] - %(asctime)s - %(message)s',
-                            datefmt='%Y/%m/%d %I:%M:%S %p',
-                            filename="./Logs/" + self.day_file_name,
-                            level=logging.INFO)
-        
         # Notify if process still running
         self.__notifyRunning()
 
@@ -93,8 +114,9 @@ class AcquisitionProcess:
         self.__processCheck()
 
         # Handle thread
-        self.thread = Timer(self.config_test_period, self.__handleFunction)
-        self.thread.start()
+        if self.process_started:
+            self.thread = Timer(self.config_test_period, self.__handleFunction)
+            self.thread.start()
 
     def start(self):
         """
@@ -119,12 +141,14 @@ class AcquisitionProcess:
         :return: N/A
         """
         if self.process_started:
-            self.client.close()
+            if self.client.is_open():
+                self.client.close()
             self.__updateComStatus(CuStatus.UNKNOWN)
             display_message = "\n" + self.config_cu_name \
                               + " Life counter process stopped\n================================\n"
             self.__displayLog(display_message)
             self.thread.cancel()
+            self.__notifyStop()
             self.process_started = False
         else:
             showinfo(self.config_cu_name + " info", self.config_cu_name + " process already stopped.")
@@ -137,17 +161,6 @@ class AcquisitionProcess:
         :return: N/A
         """
         self.gui.displayCuComStatus(self.config_cu_name, status)
-
-    def __writeLog(self, day_log_file, log_message):
-        """
-        Private method used to write logs in the corresponding log file.
-
-        :param day_log_file: (string) Log file name
-        :param log_message: (string) Message to log
-        :return: N/A
-        """
-        with open(day_log_file, "a") as log_file:
-            log_file.write(log_message)
 
     def __displayLog(self, message):
         """
@@ -176,10 +189,14 @@ class AcquisitionProcess:
         process_check_time_delta = process_current_time - self.previous_process_time
         if (int(process_check_time_delta.total_seconds()) >= self.config_process_check_time) \
                 or self.process_startup:
-            log_message = "Process running.\n"
-            logging.info(log_message)
+            log_message = self.config_cu_name + " - Process running."
+            self.logger.info(log_message)
             self.previous_process_time = datetime.now()
             self.process_startup = False
+
+    def __notifyStop(self):
+        log_message = self.config_cu_name + " - Process stopped."
+        self.logger.info(log_message)
 
     def __modbusClientConnection(self):
         """
@@ -194,20 +211,20 @@ class AcquisitionProcess:
         :return: N/A
         """
         if not self.client.is_open():
-            if self.connection_attempt <= MAX_CONNECTION_ATTEMPT:
+            if self.connection_attempt < MAX_CONNECTION_ATTEMPT:
                 # Try to connect
                 if not self.client.open():
                     self.thread.cancel()
                     # If not able, records the error
                     error_message = "Unable to connect to {} : {}.".format(self.config_server_host,str(SERVER_PORT))
-                    log_message = "Unable to connect to {} ({}):{}.\n".format(self.config_cu_name,
-                                                                              self.config_server_host,
-                                                                              str(SERVER_PORT))
+                    log_message = "Unable to connect to {} ({}):{}.".format(self.config_cu_name,
+                                                                            self.config_server_host,
+                                                                            str(SERVER_PORT))
                     display_message = log_message
                     self.__displayError(error_message)
                     self.__displayLog(display_message)
                     self.__updateComStatus(CuStatus.UNHEALTHY)
-                    logging.error(log_message)
+                    self.logger.error(log_message)
                     self.connection_attempt += 1
                 else:
                     self.__updateComStatus(CuStatus.HEALTHY)
@@ -242,7 +259,7 @@ class AcquisitionProcess:
                 display_message = log_message
                 self.__displayError(error_message)
                 self.__displayLog(display_message)
-                logging.error(log_message)
+                self.logger.error(log_message)
 
             # Records the counter value for next comparison 
             self.previous_counter_value = self.counter_value
