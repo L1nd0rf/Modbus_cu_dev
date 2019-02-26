@@ -10,14 +10,24 @@ from CuConfig import *
 from GuiManagement import *
 
 
-class LifeCounterGui:
-
+class LifeCounter:
+	"""
+	Class that handles the main program of Life Counter check.
+	"""
 	def __init__(self):
+		"""
+		Class constructor
+		"""
 		# Object initialization
 		self.config_cu = None
 		self.gui = None
 
 	def main(self):
+		"""
+		Main method.
+
+		:return: N/A
+		"""
 		# Configuration Management
 		self.config_cu = CuConfig("LifeCounterConfig.ini")
 
@@ -25,5 +35,6 @@ class LifeCounterGui:
 		self.gui = GuiManagement(self.config_cu)
 
 
+# Main method call
 if __name__ == '__main__':
-	LifeCounterGui().main()
+	LifeCounter().main()
