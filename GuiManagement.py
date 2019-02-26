@@ -40,16 +40,15 @@ class GuiManagement:
 
         # Importing CU config
         self.config_cu = config_cu
-        print(len(self.config_cu.getFullDic()))
 
         # Main window definition
-        self.initMainWindow()
+        self.__initMainWindow()
 
         # Dictionary creation with all display parameters for each CU
-        self.initCuDictionary()
+        self.__initCuDictionary()
 
         # Starting application
-        self.guiRun()
+        self.__guiRun()
 
     def displayLog(self, cu, log):
         """
@@ -75,7 +74,7 @@ class GuiManagement:
         # Disable writing mode
         self.text_zone_log.config(state="disabled")
 
-        print(log)
+        # print(log)
 
     def displayCuComStatus(self, cu, status):
         """
@@ -102,7 +101,7 @@ class GuiManagement:
                                                    column=1,
                                                    sticky=W)
 
-    def initMainWindow(self):
+    def __initMainWindow(self):
         """
         Main window creation (using Tkinter).
 
@@ -115,7 +114,7 @@ class GuiManagement:
         self.gui_main.title("CU life counter")
 
         # Calling notebook in main window including a tab for each CU
-        self.initNotebook()
+        self.__initNotebook()
 
         # Button position definition
         button_row = self.gui_row + len(self.config_cu.getFullDic())
@@ -123,17 +122,17 @@ class GuiManagement:
         # Start button calls a lambda function to start the communication of the selected CU (in the notebook).
         # The method called is part of the AcquisitionProcess class.
         self.__initButton("Start",
-                          lambda: self.cu_process_dic[self.nb_cu.tab(self.nb_cu.select(), "text")].start(),
+                          lambda: self.__getCuAcquisitionProcess().start(),
                           W,
                           button_row,
                           0)
         self.__initButton("Stop",
-                          lambda: self.cu_process_dic[self.nb_cu.tab(self.nb_cu.select(), "text")].stop(),
+                          lambda: self.__getCuAcquisitionProcess().stop(),
                           E,
                           button_row,
                           19)
 
-    def initNotebook(self):
+    def __initNotebook(self):
         """
         Tkinter notebook initialization.
 
@@ -143,7 +142,7 @@ class GuiManagement:
         self.nb_cu.grid(row=self.gui_row, column=0, columnspan=20)
         self.gui_row += 1
 
-    def initCuLabel(self):
+    def __initCuLabel(self):
         """
         Label initialization for the CU status.
 
@@ -152,9 +151,6 @@ class GuiManagement:
         Label(self.gui_main, text="CU").grid(row=self.gui_row, column=0, sticky=W)
         Label(self.gui_main, text="Communication status").grid(row=self.gui_row, column=1, sticky=W)
         self.gui_row += 1
-
-    def initFrame(self):
-        print("Test")
 
     def __initButton(self, name, action, stick, row, column):
         """
@@ -175,7 +171,7 @@ class GuiManagement:
                   column=column,
                   sticky=stick)
 
-    def guiRun(self):
+    def __guiRun(self):
         """
         Method that starts the GUI. Must be called at last.
 
@@ -183,7 +179,15 @@ class GuiManagement:
         """
         self.gui_main.mainloop()
 
-    def initCuDictionary(self):
+    def __getCuAcquisitionProcess(self):
+        """
+        Private method that returns the Acquisition Process object matching the currently selected CU tab.
+
+        :return: (object AcquisitionProcess) CU acquisition process
+        """
+        return self.cu_process_dic[self.nb_cu.tab(self.nb_cu.select(), "text")]
+
+    def __initCuDictionary(self):
         """
         Method to create a dictionary for each CU that contains all the GUI parameters.
 

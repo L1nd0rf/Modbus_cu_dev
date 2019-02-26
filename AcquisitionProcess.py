@@ -182,8 +182,9 @@ class AcquisitionProcess:
 
     def __notifyRunning(self):
         """
+        Private method to generate a log to notify that the process is currently running.
 
-        :return:
+        :return: N/A
         """
         process_current_time = datetime.now()
         process_check_time_delta = process_current_time - self.previous_process_time
@@ -195,6 +196,11 @@ class AcquisitionProcess:
             self.process_startup = False
 
     def __notifyStop(self):
+        """
+        Private method to generate a log to notify that the process was stopped
+
+        :return: N/A
+        """
         log_message = self.config_cu_name + " - Process stopped."
         self.logger.info(log_message)
 
@@ -213,21 +219,24 @@ class AcquisitionProcess:
         if not self.client.is_open():
             if self.connection_attempt < MAX_CONNECTION_ATTEMPT:
                 # Try to connect
-                if not self.client.open():
-                    self.thread.cancel()
-                    # If not able, records the error
-                    error_message = "Unable to connect to {} : {}.".format(self.config_server_host,str(SERVER_PORT))
-                    log_message = "Unable to connect to {} ({}):{}.".format(self.config_cu_name,
-                                                                            self.config_server_host,
-                                                                            str(SERVER_PORT))
-                    display_message = log_message
-                    self.__displayError(error_message)
-                    self.__displayLog(display_message)
-                    self.__updateComStatus(CuStatus.UNHEALTHY)
-                    self.logger.error(log_message)
-                    self.connection_attempt += 1
-                else:
-                    self.__updateComStatus(CuStatus.HEALTHY)
+                try:
+                    if not self.client.open():
+                        self.thread.cancel()
+                        # If not able, records the error
+                        error_message = "Unable to connect to {} : {}.".format(self.config_server_host,str(SERVER_PORT))
+                        log_message = "Unable to connect to {} ({}):{}.".format(self.config_cu_name,
+                                                                                self.config_server_host,
+                                                                                str(SERVER_PORT))
+                        display_message = log_message
+                        self.__displayError(error_message)
+                        self.__displayLog(display_message)
+                        self.__updateComStatus(CuStatus.UNHEALTHY)
+                        self.logger.error(log_message)
+                        self.connection_attempt += 1
+                    else:
+                        self.__updateComStatus(CuStatus.HEALTHY)
+                except AttributeError:
+                    pass
             else:
                 self.stop()
                 self.__displayError("Connection to " + self.config_cu_name + " aborted.")

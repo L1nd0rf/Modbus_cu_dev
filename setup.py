@@ -8,5 +8,5 @@ setup(
     name = "LifeCounterChecker",
     version = "2",
     description = "Life Counter Checker",
-    executables = [Executable("LifeCounterCheck.py")]
+    executables = [Executable("LifeCounter.py")]
 )
