@@ -3,6 +3,7 @@
 ###########
 
 import time
+import os
 from pyModbusTCP.client import ModbusClient
 from datetime import datetime
 from threading import Timer
@@ -53,7 +54,7 @@ class AcquisitionProcess:
         self.client.port(SERVER_PORT)
         self.client.timeout(MODBUS_TIMEOUT)
 
-        # Values initalization
+        # Values initialization
         self.previous_counter_value = -1
         self.previous_process_check = 0
         self.previous_process_time = datetime.now()
@@ -74,14 +75,17 @@ class AcquisitionProcess:
     def __setupLogger(self, name, log_file, level=logging.INFO):
         """
         Private method that creates a logger for the
-        :param name:
-        :param log_file:
-        :param level:
-        :return:
+        :param name: (string) Logger name
+        :param log_file: (string) File pâth to write logs
+        :param level: (logging.level) Level of information to write
+        :return: (logging) Logger dedicated to current CU instantiated
         """
         # Define logs format
         formatter = logging.Formatter(fmt='[%(levelname)s] - %(asctime)s - %(message)s',
                                       datefmt='%Y/%m/%d %I:%M:%S %p')
+
+        if not os.path.exists('./Logs/'):
+            os.makedirs('./Logs/')
 
         # Define file handler with path and format
         handler = logging.FileHandler("./Logs/" + log_file)
@@ -103,15 +107,19 @@ class AcquisitionProcess:
 
         :return: N/A
         """
+        try:
+            # Notify if process still running
+            self.__notifyRunning()
 
-        # Notify if process still running
-        self.__notifyRunning()
+            # Open or reconnect TCP to server
+            self.__modbusClientConnection()
 
-        # Open or reconnect TCP to server
-        self.__modbusClientConnection()
+            # Check that CU is still running
+            self.__processCheck()
 
-        # Check that CU is still running
-        self.__processCheck()
+        except AttributeError as e:
+            error_message = e + "\nThe process was stopped during communication establishment to" + self.config_cu_name
+            self.__displayError(error_message)
 
         # Handle thread
         if self.process_started:
