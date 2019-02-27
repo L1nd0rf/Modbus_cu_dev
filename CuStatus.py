@@ -1,6 +1,5 @@
 # Imports
-from enum import Enum, auto
-
+from enum import Enum
 
 class CuStatus(Enum):
     """
@@ -8,6 +7,6 @@ class CuStatus(Enum):
 
     This enumeration will be used in order to limit the use of statuses to display in the main GUI.
     """
-    UNKNOWN = auto()
-    HEALTHY = auto()
-    UNHEALTHY = auto()
+    UNKNOWN = 1
+    HEALTHY = 2
+    UNHEALTHY = 3
