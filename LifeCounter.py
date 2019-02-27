@@ -9,6 +9,10 @@
 from CuConfig import *
 from GuiManagement import *
 
+####################
+# Class definition #
+####################
+
 
 class LifeCounter:
 	"""

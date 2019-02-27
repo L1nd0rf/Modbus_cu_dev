@@ -6,8 +6,12 @@ import sys
 import ipaddress
 from configparser import ConfigParser
 
+####################
+# Class definition #
+####################
 
-class CuConfig():
+
+class CuConfig:
     """
     Class that allows to parse a configuration (ini file) for a communication witha CU that contains the following
         pattern:

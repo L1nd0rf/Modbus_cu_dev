@@ -1,9 +1,16 @@
+###########
+# Imports #
+###########
 
 from tkinter.ttk import *
 from tkinter import *
 import PIL.Image, PIL.ImageTk
 from AcquisitionProcess import *
 from CuStatus import CuStatus
+
+####################
+# Class definition #
+####################
 
 
 class GuiManagement:
