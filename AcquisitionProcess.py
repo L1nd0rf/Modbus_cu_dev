@@ -67,7 +67,7 @@ class AcquisitionProcess:
 
         # Objects initialization
         self.thread = None
-        self.logger = self.__setupLogger(self.config_cu_name, self.day_file_name)
+        self.logger = None
 
         # GUI textbox declaration
         self.gui = gui
@@ -133,9 +133,11 @@ class AcquisitionProcess:
         :return: N/A
         """
         if not self.process_started:
-            display_message = self.config_cu_name \
-                              + " Life counter process started\n================================"
+            display_message = "================================\n" + \
+                              self.config_cu_name + " Life counter process started\n" \
+                              "================================"
             self.__displayLog(display_message)
+            self.logger = self.__setupLogger(self.config_cu_name, self.day_file_name)
             self.thread = Timer(self.config_test_period, self.__handleFunction)
             self.thread.start()
             self.process_started = True
@@ -152,8 +154,9 @@ class AcquisitionProcess:
             if self.client.is_open():
                 self.client.close()
             self.__updateComStatus(CuStatus.UNKNOWN)
-            display_message = "\n" + self.config_cu_name \
-                              + " Life counter process stopped\n================================\n"
+            display_message = "================================\n" + \
+                              self.config_cu_name + " Life counter process stopped\n" \
+                              "================================\n"
             self.__displayLog(display_message)
             self.thread.cancel()
             self.__notifyStop()
@@ -211,6 +214,7 @@ class AcquisitionProcess:
         """
         log_message = self.config_cu_name + " - Process stopped."
         self.logger.info(log_message)
+        self.logger = None
 
     def __modbusClientConnection(self):
         """

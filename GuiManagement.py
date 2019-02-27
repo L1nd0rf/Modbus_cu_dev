@@ -4,9 +4,11 @@
 
 from tkinter.ttk import *
 from tkinter import *
+from tkinter.scrolledtext import *
 import PIL.Image, PIL.ImageTk
 from AcquisitionProcess import *
 from CuStatus import CuStatus
+from collections import OrderedDict
 
 ####################
 # Class definition #
@@ -46,7 +48,7 @@ class GuiManagement:
         self.gui_row = 0
 
         # Importing CU config
-        self.config_cu = config_cu
+        self.config_cu = OrderedDict(config_cu.getFullDic())
 
         # Main window definition
         self.__initMainWindow()
@@ -119,12 +121,13 @@ class GuiManagement:
         """
         self.gui_main = Tk()
         self.gui_main.title("CU life counter")
+        self.gui_main.resizable(False, False)
 
         # Calling notebook in main window including a tab for each CU
         self.__initNotebook()
 
         # Button position definition
-        button_row = self.gui_row + len(self.config_cu.getFullDic())
+        button_row = self.gui_row + len(self.config_cu)
 
         # Start button calls a lambda function to start the communication of the selected CU (in the notebook).
         # The method called is part of the AcquisitionProcess class.
@@ -216,13 +219,13 @@ class GuiManagement:
         im = PIL.Image.open("./bitmap/state_unknown.png")
         photo = PIL.ImageTk.PhotoImage(im)
 
-        for config_dic_id, config_dic_info in self.config_cu.getFullDic().items():
+        for config_dic_id, config_dic_info in self.config_cu.items():
             # Current CU tab dictionary initialization
             self.cu_tab_dic = {}
 
             # Tabs dictionary declaration
             self.cu_tab_dic.update({"Tab": Frame(self.nb_cu, width=300, height=300, padx=5, pady=5)})
-            self.cu_tab_dic.update({"Text": Text(self.cu_tab_dic["Tab"])})
+            self.cu_tab_dic.update({"Text": ScrolledText(self.cu_tab_dic["Tab"])})
             self.cu_tab_dic.update({"CU Label": Label(self.gui_main, text=config_dic_id)})
             self.cu_tab_dic.update({"Picture Canvas": Canvas(self.gui_main, width=25, height=25)})
             self.cu_tab_dic.update({"Com Status Picture": photo})
