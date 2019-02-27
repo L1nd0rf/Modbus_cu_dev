@@ -48,7 +48,7 @@ class GuiManagement:
         self.gui_row = 0
 
         # Importing CU config
-        self.config_cu = OrderedDict(config_cu.getFullDic())
+        self.config_cu = OrderedDict(sorted(config_cu.getFullDic().items(), key=lambda t: t[0]))
 
         # Main window definition
         self.__initMainWindow()
