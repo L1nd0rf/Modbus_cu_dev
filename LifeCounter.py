@@ -26,6 +26,16 @@ class LifeCounter:
 		self.config_cu = None
 		self.gui = None
 
+	def __del__(self):
+		"""
+		Method called at object deletion.
+
+		Override in order to cancel thread and close communication socket in case.
+
+		:return:
+		"""
+		self.gui.__del__()
+
 	def main(self):
 		"""
 		Main method.

@@ -59,6 +59,17 @@ class GuiManagement:
         # Starting application
         self.__guiRun()
 
+    def __del__(self):
+        """
+        Method called at object deletion.
+
+        Override in order to cancel thread and close communication socket for each CU if running.
+
+        :return: N/A
+        """
+        for cu in self.cu_process_dic:
+            self.cu_process_dic[cu].__del__()
+
     def displayLog(self, cu, log):
         """
         Method to display the current logs in the notebook tab corresponding to the CU.
@@ -93,7 +104,6 @@ class GuiManagement:
             enum values:
         :return: N/A
         """
-
         if status == CuStatus.HEALTHY:
             self.pic_com_status = PIL.ImageTk.PhotoImage(PIL.Image.open("./bitmap/state_healthy.png"))
         elif status == CuStatus.UNHEALTHY:
@@ -101,14 +111,16 @@ class GuiManagement:
         elif status == CuStatus.UNKNOWN:
             self.pic_com_status = PIL.ImageTk.PhotoImage(PIL.Image.open("./bitmap/state_unknown.png"))
 
-        # Update communication picture status and Picture Canvas in CU dictionary
-        self.cu_gui_dic[cu].update({"Com Status Picture": self.pic_com_status})
-        self.cu_gui_dic[cu]["Picture Canvas"].create_image(15, 15, image=self.cu_gui_dic[cu]["Com Status Picture"])
+        if self.pic_com_status != self.cu_gui_dic[cu]["Com Status Picture"]:
+            # Update communication picture status and Picture Canvas in CU dictionary
+            self.cu_gui_dic[cu].update({"Com Status Picture": self.pic_com_status})
+            self.cu_gui_dic[cu]["Picture Canvas"]\
+                .create_image(15, 15, image=self.cu_gui_dic[cu]["Com Status Picture"])
 
-        # Display picture
-        self.cu_gui_dic[cu]["Picture Canvas"].grid(row=self.cu_gui_dic[cu]["Com Status Picture Row"],
-                                                   column=1,
-                                                   sticky=W)
+            # Display picture
+            self.cu_gui_dic[cu]["Picture Canvas"].grid(row=self.cu_gui_dic[cu]["Com Status Picture Row"],
+                                                       column=1,
+                                                       sticky=W)
 
     def __initMainWindow(self):
         """

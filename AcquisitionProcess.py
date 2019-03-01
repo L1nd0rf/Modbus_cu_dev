@@ -72,6 +72,20 @@ class AcquisitionProcess:
         # GUI textbox declaration
         self.gui = gui
 
+    def __del__(self):
+        """
+        Method called at object deletion.
+
+        Override in order to cancel thread and close communication socket in case they are running.
+
+        :return: N/A
+        """
+        if self.client.is_open():
+            self.client.close()
+
+        if self.thread:
+            self.thread.cancel()
+
     def __setupLogger(self, name, log_file, level=logging.INFO):
         """
         Private method that creates a logger for the
@@ -118,7 +132,9 @@ class AcquisitionProcess:
             self.__processCheck()
 
         except AttributeError as e:
-            error_message = e + "\nThe process was stopped during communication establishment to" + self.config_cu_name
+            error_message = e + \
+                            "\nThe process was stopped during communication establishment to" + \
+                            self.config_cu_name
             self.__displayError(error_message)
 
         # Handle thread
@@ -133,6 +149,7 @@ class AcquisitionProcess:
         :return: N/A
         """
         if not self.process_started:
+            self.connection_attempt = 0
             display_message = "================================\n" + \
                               self.config_cu_name + " Life counter process started\n" \
                               "================================"
@@ -234,15 +251,15 @@ class AcquisitionProcess:
                 try:
                     if not self.client.open():
                         self.thread.cancel()
+                        self.__updateComStatus(CuStatus.UNHEALTHY)
                         # If not able, records the error
                         error_message = "Unable to connect to {} : {}.".format(self.config_server_host,str(SERVER_PORT))
-                        log_message = "Unable to connect to {} ({}):{}.".format(self.config_cu_name,
+                        log_message = "Unable to connect to {} ({}:{}).".format(self.config_cu_name,
                                                                                 self.config_server_host,
                                                                                 str(SERVER_PORT))
                         display_message = log_message
                         self.__displayError(error_message)
                         self.__displayLog(display_message)
-                        self.__updateComStatus(CuStatus.UNHEALTHY)
                         self.logger.error(log_message)
                         self.connection_attempt += 1
                     else:
@@ -273,8 +290,9 @@ class AcquisitionProcess:
             self.__displayLog(display_message)
 
             # Test if counter is incremented
-            if self.counter_value == self.previous_counter_value:
+            if self.counter_value == self.previous_counter_value or str(self.counter_value) == "None":
                 self.thread.cancel()
+                self.__updateComStatus(CuStatus.UNHEALTHY)
                 error_message = self.config_cu_name + " has stopped running."
                 log_message = "Life counter value didn't change (value = {}))".format(self.counter_value)
                 display_message = log_message
@@ -282,5 +300,5 @@ class AcquisitionProcess:
                 self.__displayLog(display_message)
                 self.logger.error(log_message)
 
-            # Records the counter value for next comparison 
+            # Records the counter value for next comparison
             self.previous_counter_value = self.counter_value
